@@ -1,0 +1,88 @@
+@import "tailwindcss";
+
+@theme {
+  --color-paper: #f5f7fa;
+  --color-sheet: #ffffff;
+  --color-ink: #1c2541;
+  --color-ink-soft: #4a5571;
+  --color-rule: #dbe5f1;
+  --color-margin: #f2b8b5;
+  --color-marker: #ffe45c;
+  --color-good: #227a4f;
+  --color-check: #a8650f;
+  --color-weak: #b23a33;
+  --font-serif: "Source Serif 4 Variable", Georgia, serif;
+  --font-sans: "Figtree Variable", system-ui, sans-serif;
+}
+
+html {
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-variant-numeric: tabular-nums;
+}
+
+body { margin: 0; }
+
+:focus-visible {
+  outline: 2px solid var(--color-ink);
+  outline-offset: 2px;
+}
+
+/* Ruled notebook paper: 32px rules matching line-height, scrolls with the text */
+.ruled {
+  font-family: var(--font-serif);
+  font-size: 18px;
+  line-height: 32px;
+  padding: 0 16px 0 68px;
+  background-color: var(--color-sheet);
+  background-image:
+    linear-gradient(to right, transparent 52px, var(--color-margin) 52px, var(--color-margin) 53px, transparent 53px),
+    linear-gradient(to bottom, transparent 31px, var(--color-rule) 31px, var(--color-rule) 32px);
+  background-size: 100% 100%, 100% 32px;
+  background-attachment: local;
+  background-repeat: no-repeat, repeat;
+}
+
+/* Highlighter stroke with uneven rounded edges */
+.marker {
+  background: var(--color-marker);
+  color: inherit;
+  padding: 0 0.25em;
+  border-radius: 0.5em 0.2em 0.6em 0.25em / 0.25em 0.5em 0.2em 0.45em;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+
+/* Hidden answer in quiz mode */
+.hatch {
+  color: transparent;
+  user-select: none;
+  padding: 0 0.25em;
+  border-radius: 0.25em;
+  background-image: repeating-linear-gradient(
+    135deg,
+    var(--color-rule) 0 3px,
+    var(--color-sheet) 3px 7px
+  );
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+.fade-up {
+  animation: fadeUp 0.4s ease-out both;
+  animation-delay: calc(var(--i, 0) * 60ms);
+}
+
+@keyframes pulse-soft {
+  50% { opacity: 0.5; }
+}
+.pulse-soft { animation: pulse-soft 1.6s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .fade-up, .pulse-soft { animation: none; }
+}
