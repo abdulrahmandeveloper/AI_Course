@@ -11,7 +11,7 @@ type Props = {
 
 export default function Controls({ numQuestions, onNumQuestions, quizMode, onQuizMode, onGenerate, loading, disabled, hint }: Props) {
   return (
-    <div className="mt-4">
+    <div className="mt-4 rounded-lg border border-rule bg-sheet p-4 shadow-sm">
       <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
         <div className="flex items-center gap-3">
           <label htmlFor="num-questions" className="text-sm font-medium">Questions</label>
@@ -40,7 +40,7 @@ export default function Controls({ numQuestions, onNumQuestions, quizMode, onQui
         type="button"
         onClick={onGenerate}
         disabled={disabled}
-        className="mt-4 w-full rounded-md bg-ink px-4 py-3 font-semibold text-white hover:bg-ink-soft disabled:cursor-not-allowed disabled:opacity-50"
+        className="mt-4 w-full rounded-lg bg-ink px-4 py-3.5 text-base font-semibold text-white shadow-sm transition-colors hover:bg-ink-soft disabled:cursor-not-allowed disabled:opacity-50"
       >
         {loading ? 'Generating questions…' : 'Generate questions'}
       </button>

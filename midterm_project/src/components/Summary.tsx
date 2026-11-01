@@ -8,9 +8,9 @@ export default function Summary({ summary }: { summary: SummaryData }) {
     [`${summary.seconds.toFixed(1)} s`, 'generation time'],
   ]
   return (
-    <dl className="grid grid-cols-2 gap-4 rounded-lg border border-rule bg-sheet p-4 shadow-sm sm:grid-cols-4">
+    <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-rule bg-rule shadow-sm sm:grid-cols-4">
       {stats.map(([value, label]) => (
-        <div key={label}>
+        <div key={label} className="bg-sheet p-4">
           <dd className="text-2xl font-semibold">{value}</dd>
           <dt className="text-sm text-ink-soft">{label}</dt>
         </div>
