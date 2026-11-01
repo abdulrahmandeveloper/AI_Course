@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
-import type { Connection, GenerateResponse } from './types.ts'
+import type { Connection, GenerateResponse, SavedNote } from './types.ts'
 import { generate, testConnection } from './api.ts'
 import { downloadCsv } from './csv.ts'
-import sampleNotes from './sampleNotes.ts'
+import sampleNotes, { type SampleNote } from './sampleNotes.ts'
 import ApiBar from './components/ApiBar.tsx'
 import Controls from './components/Controls.tsx'
 import EmptyState from './components/EmptyState.tsx'
+import NotesLibrary from './components/NotesLibrary.tsx'
 import NotesInput, { maxChars } from './components/NotesInput.tsx'
 import QuestionCard from './components/QuestionCard.tsx'
 import Summary from './components/Summary.tsx'
@@ -28,6 +29,20 @@ const writeStored = (key: string, value: string) => {
   }
 }
 
+const readSaved = (): SavedNote[] => {
+  try {
+    const parsed = JSON.parse(readStored('savedNotes') || '[]')
+    return Array.isArray(parsed) ? parsed : []
+  } catch {
+    return []
+  }
+}
+
+const titleFrom = (text: string) => {
+  const firstLine = text.trim().split('\n')[0] ?? ''
+  return firstLine.length > 40 ? `${firstLine.slice(0, 40).trim()}…` : firstLine
+}
+
 const errorText = (err: unknown) => (err instanceof Error ? err.message : String(err))
 
 const notChecked: Connection = { state: 'idle', text: 'Not checked' }
@@ -35,6 +50,8 @@ const notChecked: Connection = { state: 'idle', text: 'Not checked' }
 export default function App() {
   const [apiUrl, setApiUrl] = useState(() => readStored('apiUrl'))
   const [notes, setNotes] = useState(() => readStored('notes'))
+  const [saved, setSaved] = useState<SavedNote[]>(readSaved)
+  const [currentId, setCurrentId] = useState<string | null>(null)
   const [numQuestions, setNumQuestions] = useState(5)
   const [quizMode, setQuizMode] = useState(false)
   const [connection, setConnection] = useState<Connection>(notChecked)
@@ -45,6 +62,39 @@ export default function App() {
 
   useEffect(() => writeStored('apiUrl', apiUrl), [apiUrl])
   useEffect(() => writeStored('notes', notes), [notes])
+  useEffect(() => writeStored('savedNotes', JSON.stringify(saved)), [saved])
+
+  const saveNote = () => {
+    const now = Date.now()
+    const title = titleFrom(notes)
+    if (currentId && saved.some((n) => n.id === currentId)) {
+      setSaved((prev) => prev.map((n) => (n.id === currentId ? { ...n, title, text: notes, updatedAt: now } : n)))
+    } else {
+      const id = crypto.randomUUID()
+      setSaved((prev) => [{ id, title, text: notes, updatedAt: now }, ...prev])
+      setCurrentId(id)
+    }
+  }
+
+  const newNote = () => {
+    setNotes('')
+    setCurrentId(null)
+  }
+
+  const openNote = (note: SavedNote) => {
+    setNotes(note.text)
+    setCurrentId(note.id)
+  }
+
+  const deleteNote = (id: string) => {
+    setSaved((prev) => prev.filter((n) => n.id !== id))
+    if (id === currentId) setCurrentId(null)
+  }
+
+  const useSample = (sample: SampleNote) => {
+    setNotes(sample.text)
+    setCurrentId(null)
+  }
 
   const changeApiUrl = (url: string) => {
     setApiUrl(url)
@@ -90,10 +140,10 @@ export default function App() {
   const hasQuestions = result !== null && questions.length > 0
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:py-10">
-      <header className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+    <div className="min-h-screen px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+      <header className="flex flex-col gap-6 border-b border-rule pb-6 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <h1 className="font-serif text-4xl font-semibold">Notes to Questions</h1>
+          <h1 className="font-serif text-4xl font-semibold tracking-tight">Notes to Questions</h1>
           <p className="mt-2 max-w-md text-ink-soft">
             Paste your study notes and get quiz questions, each checked for relevance and correctness.
           </p>
@@ -101,9 +151,20 @@ export default function App() {
         <ApiBar apiUrl={apiUrl} onApiUrlChange={changeApiUrl} connection={connection} onTest={runTest} />
       </header>
 
-      <main className="mt-8 grid gap-8 lg:grid-cols-12">
-        <section className="lg:sticky lg:top-6 lg:col-span-5 lg:self-start">
-          <NotesInput notes={notes} onChange={setNotes} onUseSample={() => setNotes(sampleNotes)} />
+      <main className="mt-6 grid gap-6 lg:grid-cols-12 xl:gap-8">
+        <section className="lg:col-span-12 xl:sticky xl:top-6 xl:col-span-3 xl:self-start">
+          <NotesLibrary
+            saved={saved}
+            samples={sampleNotes}
+            currentId={currentId}
+            onOpen={openNote}
+            onDelete={deleteNote}
+            onUseSample={useSample}
+          />
+        </section>
+
+        <section className="lg:sticky lg:top-6 lg:col-span-5 lg:self-start xl:col-span-4">
+          <NotesInput notes={notes} onChange={setNotes} isSaved={currentId !== null} onSave={saveNote} onNew={newNote} />
           <Controls
             numQuestions={numQuestions}
             onNumQuestions={setNumQuestions}
@@ -116,11 +177,12 @@ export default function App() {
           />
         </section>
 
-        <section className="lg:col-span-7" aria-live="polite">
+        <section className="lg:col-span-7 xl:col-span-5">
+          <div aria-live="polite">
           <div className="flex items-baseline justify-between">
-            <h2 className="text-lg font-semibold">Questions</h2>
+            <h2 className="font-semibold">Questions</h2>
             {hasQuestions && (
-              <button type="button" onClick={() => downloadCsv(questions)} className="rounded text-sm font-medium underline underline-offset-2 hover:text-ink-soft">
+              <button type="button" onClick={() => downloadCsv(questions)} className="rounded-md border border-rule bg-sheet px-3 py-1 text-sm font-medium hover:bg-rule">
                 Download CSV
               </button>
             )}
@@ -160,6 +222,7 @@ export default function App() {
                 ))}
               </>
             )}
+          </div>
           </div>
         </section>
       </main>
