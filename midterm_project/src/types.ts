@@ -35,3 +35,10 @@ export type Connection = {
   state: ConnectionState
   text: string
 }
+
+export type SavedNote = {
+  id: string
+  title: string
+  text: string
+  updatedAt: number
+}
