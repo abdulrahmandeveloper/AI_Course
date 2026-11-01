@@ -17,7 +17,7 @@ type Props = {
 export default function ApiBar({ apiUrl, onApiUrlChange, connection, onTest }: Props) {
   const { state, text } = connection
   return (
-    <div className="w-full lg:max-w-md">
+    <div className="w-full lg:max-w-lg">
       <label htmlFor="api-url" className="block text-sm font-medium text-ink-soft">
         API link from Colab
       </label>
@@ -29,12 +29,12 @@ export default function ApiBar({ apiUrl, onApiUrlChange, connection, onTest }: P
           onChange={(e) => onApiUrlChange(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && onTest()}
           placeholder="https://…trycloudflare.com"
-          className="min-w-0 flex-1 rounded-md border border-rule bg-sheet px-3 py-2 text-sm"
+          className="min-w-0 flex-1 rounded-md border border-rule bg-sheet px-3 py-2 text-sm shadow-sm"
         />
         <button
           type="button"
           onClick={onTest}
-          className="rounded-md border border-ink bg-sheet px-3 py-2 text-sm font-medium hover:bg-rule"
+          className="rounded-md border border-ink bg-ink px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-ink-soft"
         >
           Test connection
         </button>
